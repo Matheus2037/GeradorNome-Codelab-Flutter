@@ -30,12 +30,19 @@ class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
 
     void getNext() {
-    current = WordPair.random();
-    notifyListeners();
+      if (!lastNames.contains(current)) {
+          lastNames.insert(0, current);
+        if (lastNames.length > 5) {
+            lastNames.removeLast();
+        }
+      }
+      current = WordPair.random();
+      notifyListeners();
     }
 
     // ↓ Add the code below.
   var favorites = <WordPair>[];
+  var lastNames = <WordPair>[];
 
   void toggleFavorite() {
     if (favorites.contains(current)) {
@@ -128,7 +135,29 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Exibe os últimos 5 nomes gerados.
+          if (appState.lastNames.isNotEmpty)
+            Column(
+              children: [
+                SizedBox(height: 10),
+                for (var recentPair in appState.lastNames)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center, // Centraliza
+                    children: [
+                      if (appState.favorites.contains(recentPair))
+                        Icon(Icons.favorite),
+                      SizedBox(width: 8), // Espaçamento entre o ícone e o texto
+                      Text(recentPair.asLowerCase),
+                    ],
+                  ),
+              ],
+            ),
+          SizedBox(height: 20),
+
+
           BigCard(pair: pair),
+
+          
           SizedBox(height: 10),
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -156,29 +185,30 @@ class GeneratorPage extends StatelessWidget {
 }
 
 class BigCard extends StatelessWidget {
-  const BigCard({
-    super.key,
-    required this.pair,
-  });
-
   final WordPair pair;
+
+  const BigCard({required this.pair});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
-    );
-
-    return Card(
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
+    return Container(
+      width: 300,
+      height: 100, 
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
         child: Text(
-          pair.asLowerCase,
-          style: style,
-          semanticsLabel: "${pair.first} ${pair.second}",
+          pair.asPascalCase,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis, 
         ),
       ),
     );
